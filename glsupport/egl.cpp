@@ -7,8 +7,7 @@ Display::Display(EGLNativeDisplayType nativeDisplay)
     auto dpy(::eglGetDisplay(nativeDisplay));
 
     if (dpy == EGL_NO_DISPLAY) {
-        LOGTHROW(err2, Error)
-            << "EGL: Display found (" << detail::error() << ").";
+        LOGTHROW(err2, Error) << "EGL: No display found.";
     }
 
     EGLint major{};
