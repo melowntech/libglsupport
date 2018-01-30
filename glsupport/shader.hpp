@@ -3,11 +3,12 @@
 
 #include <memory>
 
-#include <GLES2/gl2.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
 
 #include "dbglog/dbglog.hpp"
 
-namespace glsupport { namespace gles2 {
+namespace glsupport {
 
 struct Error : std::runtime_error {
     Error(const std::string &msg) : std::runtime_error(msg) {}
@@ -122,6 +123,6 @@ inline void Program::link(VertexShader vs, FragmentShader fs)
     return link(vs, fs, {});
 }
 
-} } // namespace glsupport::gles2
+} // namespace glsupport
 
 #endif // gles2_hpp_included_

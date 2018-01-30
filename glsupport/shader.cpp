@@ -1,6 +1,6 @@
-#include "./gles2.hpp"
+#include "./shader.hpp"
 
-namespace glsupport { namespace gles2 {
+namespace glsupport {
 
 namespace detail {
 
@@ -97,4 +97,4 @@ void Program::link(VertexShader vs, FragmentShader fs
     fs_ = std::move(fs);
 }
 
-} } // namespace glsupport::gles2
+} // namespace glsupport
