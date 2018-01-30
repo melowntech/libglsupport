@@ -1,13 +1,14 @@
 # bump version here
 set(glsupport_VERSION 1.0)
 define_module(LIBRARY glsupport=${glsupport_VERSION}
-  DEPENDS dbglog>=1.4 OpenGL::EGL OpenGL::GL
+  DEPENDS math>=1.4 dbglog>=1.4 OpenGL::EGL OpenGL::GL
   DEFINITIONS MESA_EGL_NO_X11_HEADERS=1 GL_GLEXT_PROTOTYPES=1
   )
 
 set(glsupport_SOURCES
   egl.hpp egl.cpp
   shader.hpp shader.cpp
+  fb.hpp fb.cpp
   )
 
 add_library(glsupport STATIC ${glsupport_SOURCES})
