@@ -2,7 +2,7 @@
 
 namespace glsupport { namespace egl {
 
-Display::Display(EGLNativeDisplayType nativeDisplay)
+Display::Display(::EGLNativeDisplayType nativeDisplay)
 {
     auto dpy(::eglGetDisplay(nativeDisplay));
 
@@ -19,7 +19,7 @@ Display::Display(EGLNativeDisplayType nativeDisplay)
             << detail::error() << ")";
     }
 
-    dpy_ = Ptr(dpy, [](EGLDisplay dpy) -> void
+    dpy_ = Ptr(dpy, [](::EGLDisplay dpy) -> void
     {
         if (dpy == EGL_NO_DISPLAY) { return; }
 
@@ -39,9 +39,9 @@ Display::Display(EGLNativeDisplayType nativeDisplay)
                << "." << minor << ").";
 }
 
-std::vector<EGLConfig> getConfigs(const Display &dpy, int limit)
+std::vector< ::EGLConfig> getConfigs(const Display &dpy, int limit)
 {
-    EGLint numConfigs;
+    ::EGLint numConfigs;
     if (limit <= 0) {
         if (!::eglGetConfigs(dpy, nullptr, 0, &numConfigs)) {
             LOGTHROW(err2, Error)
@@ -51,7 +51,7 @@ std::vector<EGLConfig> getConfigs(const Display &dpy, int limit)
         limit = numConfigs;
     }
 
-    std::vector<EGLConfig> configs(limit);
+    std::vector< ::EGLConfig> configs(limit);
 
     if (!::eglGetConfigs(dpy, configs.data(), limit, &numConfigs)) {
         LOGTHROW(err2, Error)
@@ -63,10 +63,10 @@ std::vector<EGLConfig> getConfigs(const Display &dpy, int limit)
     return configs;
 }
 
-std::vector<EGLConfig>
-chooseConfigs(const Display &dpy, const EGLint *attributes, int limit)
+std::vector< ::EGLConfig>
+chooseConfigs(const Display &dpy, const ::EGLint *attributes, int limit)
 {
-    EGLint numConfigs;
+    ::EGLint numConfigs;
     if (limit <= 0) {
         if (!::eglChooseConfig(dpy, attributes, nullptr, 0, &numConfigs)) {
             LOGTHROW(err2, Error)
@@ -76,7 +76,7 @@ chooseConfigs(const Display &dpy, const EGLint *attributes, int limit)
         limit = numConfigs;
     }
 
-    std::vector<EGLConfig> configs(limit);
+    std::vector< ::EGLConfig> configs(limit);
 
     if (!::eglChooseConfig(dpy, attributes, configs.data()
                            , limit, &numConfigs))
@@ -89,8 +89,8 @@ chooseConfigs(const Display &dpy, const EGLint *attributes, int limit)
     return configs;
 }
 
-Surface::Surface(const Display &dpy, EGLSurface surface)
-    : surface_(surface, [dpy](EGLSurface surface) -> void
+Surface::Surface(const Display &dpy, ::EGLSurface surface)
+    : surface_(surface, [dpy](::EGLSurface surface) -> void
                {
                    if (surface == EGL_NO_SURFACE) { return; }
 
@@ -108,26 +108,26 @@ Surface::Surface(const Display &dpy, EGLSurface surface)
 
 namespace detail {
 
-Surface pbuffer(const Display &display, EGLConfig config
-                , const EGLint *attributes)
+Surface pbuffer(const Display &dpy, ::EGLConfig config
+                , const ::EGLint *attributes)
 {
-    auto surface(::eglCreatePbufferSurface(display, config, attributes));
+    auto surface(::eglCreatePbufferSurface(dpy, config, attributes));
     if (surface == EGL_NO_SURFACE) {
         LOGTHROW(err2, Error) << "EGL: Cannot create surface ("
                               << detail::error() << ").";
     }
 
     LOG(info1) << "EGL: Created surface " << surface
-               << " at display " << display << ".";
+               << " at display " << dpy << ".";
 
-    return { display, surface };
+    return Surface(dpy, surface);
 }
 
 } // namespace detail
 
-Context::Context(const Display &dpy, EGLContext context)
+Context::Context(const Display &dpy, ::EGLContext context)
     : dpy_(dpy)
-    , context_(context, [dpy](EGLContext context) -> void
+    , context_(context, [dpy](::EGLContext context) -> void
                {
                    if (context == EGL_NO_CONTEXT) { return; }
 
@@ -166,20 +166,20 @@ void Context::makeCurrent(const Surface &draw, const Surface &read) const
 
 namespace detail {
 
-Context context(const Display &display, EGLConfig config
-                , EGLContext share, const EGLint *attributes)
+Context context(const Display &dpy, ::EGLConfig config
+                , ::EGLContext share, const ::EGLint *attributes)
 {
-    auto context(::eglCreateContext(display, config, share, attributes));
+    auto context(::eglCreateContext(dpy, config, share, attributes));
     if (context == EGL_NO_CONTEXT) {
         LOGTHROW(err2, Error)
             << "EGL: Cannot create context at display "
-            << display << " (" << detail::error() << ").";
+            << dpy << " (" << detail::error() << ").";
     }
 
     LOG(info1) << "EGL: Created context " << context
-               << " at display " << display << ".";
+               << " at display " << dpy << ".";
 
-    return { display, context };
+    return Context(dpy, context);
 }
 
 const char* error()

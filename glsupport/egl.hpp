@@ -9,6 +9,8 @@ namespace glsupport { namespace egl {
 
 namespace detail {
 const char* error();
+
+struct PlaceHolder { PlaceHolder() {}; };
 } // namespace detail
 
 struct Error : std::runtime_error {
@@ -21,6 +23,8 @@ private:
 
 public:
     Display(::EGLNativeDisplayType nativeDisplay = EGL_DEFAULT_DISPLAY);
+
+    Display(detail::PlaceHolder) {}
 
     ::EGLDisplay operator*() const { return dpy_.get(); }
     operator ::EGLDisplay() const { return dpy_.get(); }
@@ -104,6 +108,9 @@ private:
     typedef std::shared_ptr<std::remove_pointer< ::EGLContext>::type> Ptr;
 
 public:
+    Context() : dpy_(detail::PlaceHolder()) {}
+    Context(const Context&) = default;
+
     Context(const Display &dpy, ::EGLContext context);
 
     void makeCurrent(const Surface &surface) const;
@@ -136,7 +143,7 @@ Context context(const Display &display, const ConfigType &config
 template <typename ConfigType>
 Context context(const Display &display, const ConfigType &config
                 , const std::initializer_list< ::EGLint> &attributes
-                , EGLContext share = EGL_NO_CONTEXT)
+                , ::EGLContext share = EGL_NO_CONTEXT)
 {
     return detail::context(display, asEglConfig(config), share
                            , asEglAttributes(attributes));
