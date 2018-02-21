@@ -1,11 +1,118 @@
+#include <dlfcn.h>
+
+#include <new>
+
 #include "./egl.hpp"
 
 namespace glsupport { namespace egl {
 
-Display::Display(::EGLNativeDisplayType nativeDisplay)
-{
-    auto dpy(::eglGetDisplay(nativeDisplay));
+namespace ext {
 
+template <typename Prototype>
+Prototype getProcAddress(const char *name, std::nothrow_t)
+{
+    ::dlerror();
+    auto proc(Prototype(::dlsym(RTLD_DEFAULT, name)));
+    if (auto error = ::dlerror()) {
+        LOG(warn2)
+            << "Unable to get address of EGL function: "
+            << name << ": " << error << ".";
+        return nullptr;
+    }
+    return Prototype(proc);
+}
+
+template <typename Prototype>
+Prototype getProcAddress(const char *name)
+{
+    ::dlerror();
+    auto proc(Prototype(::dlsym(RTLD_DEFAULT, name)));
+    if (auto error = ::dlerror()) {
+        LOGTHROW(err2, std::runtime_error)
+            << "Unable to get address of EGL function "
+            << name << ": " << error << ".";
+    }
+    return Prototype(proc);
+}
+
+template <typename Prototype>
+Prototype eglGetProcAddress(const char *name)
+{
+    typedef void* (EGLAPIENTRYP EglGetProcAddress)(const char *procname);
+    static auto loader(getProcAddress<EglGetProcAddress>
+                       ("eglGetProcAddress", std::nothrow));
+
+    if (!loader) {
+        LOGTHROW(err2, std::runtime_error)
+            << "EGL: unable to query extensions.";
+    }
+
+    auto proc(Prototype(loader(name)));
+    if (!proc) {
+        LOGTHROW(err2, std::runtime_error)
+            << "EGL: unable to get <" << name << "> extension.";
+    }
+
+    return proc;
+}
+
+::EGLDisplay getPlatformDisplay(const Device &device)
+{
+    static auto eglGetPlatformDisplayEXT
+        (eglGetProcAddress<PFNEGLGETPLATFORMDISPLAYEXTPROC>
+         ("eglGetPlatformDisplayEXT"));
+
+    if (!eglGetPlatformDisplayEXT) {
+        LOGTHROW(err2, std::runtime_error)
+            << "EGL: eglGetPlatformDisplayEXT unavailable.";
+    }
+
+    return eglGetPlatformDisplayEXT
+        (EGL_PLATFORM_DEVICE_EXT, device.device, nullptr);
+}
+
+} // namespace ext
+
+Device::list queryDevices()
+{
+    static auto eglQueryDevicesEXT
+        (ext::eglGetProcAddress<PFNEGLQUERYDEVICESEXTPROC>
+         ("eglQueryDevicesEXT"));
+
+    if (!eglQueryDevicesEXT) {
+        LOGTHROW(err2, std::runtime_error)
+            << "EGL: eglQueryDevicesEXT unavailable.";
+    }
+
+    ::EGLint deviceCount;
+    if (!eglQueryDevicesEXT(0, nullptr, &deviceCount)) {
+        LOGTHROW(err2, Error)
+            << "EGL: Cannot query number of devices ("
+            << detail::error() << ")";
+    }
+
+    std::vector< ::EGLDeviceEXT> devices;
+    devices.resize(deviceCount);
+
+    if (!eglQueryDevicesEXT(deviceCount, devices.data(), &deviceCount)) {
+        LOGTHROW(err2, Error)
+            << "EGL: Cannot query devices ("
+            << detail::error() << ")";
+    }
+
+    // convert to device list
+    Device::list out;
+    for (auto device : devices) {
+        out.emplace_back(device);
+    }
+    return out;
+}
+
+namespace {
+
+template <typename What>
+Display::Ptr openDisplay(::EGLDisplay dpy, What what)
+{
     if (dpy == EGL_NO_DISPLAY) {
         LOGTHROW(err2, Error) << "EGL: No display found.";
     }
@@ -19,7 +126,7 @@ Display::Display(::EGLNativeDisplayType nativeDisplay)
             << detail::error() << ")";
     }
 
-    dpy_ = Ptr(dpy, [](::EGLDisplay dpy) -> void
+    Display::Ptr display(dpy, [](::EGLDisplay dpy) -> void
     {
         if (dpy == EGL_NO_DISPLAY) { return; }
 
@@ -34,10 +141,21 @@ Display::Display(::EGLNativeDisplayType nativeDisplay)
                    << dpy << ".";
     });
 
-    LOG(info1) << "Initialized EGL display " << nativeDisplay
-               << " (" << dpy_ << ", EGL version " << major
+    LOG(info1) << "Initialized EGL display " << what
+               << " (" << display << ", EGL version " << major
                << "." << minor << ").";
+    return display;
 }
+
+} // namespace
+
+Display::Display(::EGLNativeDisplayType nativeDisplay)
+    : dpy_(openDisplay(::eglGetDisplay(nativeDisplay), nativeDisplay))
+{}
+
+Display::Display(const Device &device)
+    : dpy_(openDisplay(ext::getPlatformDisplay(device), device.device))
+{}
 
 std::vector< ::EGLConfig> getConfigs(const Display &dpy, int limit)
 {

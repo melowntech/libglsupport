@@ -13,6 +13,6 @@ set(glsupport_SOURCES
 
 add_library(glsupport STATIC ${glsupport_SOURCES})
 
-target_link_libraries(glsupport ${MODULE_LIBRARIES})
+target_link_libraries(glsupport ${MODULE_LIBRARIES} ${CMAKE_DL_LIBS})
 buildsys_target_compile_definitions(glsupport ${MODULE_DEFINITIONS})
 buildsys_library(glsupport)

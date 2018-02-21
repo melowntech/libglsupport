@@ -2,6 +2,7 @@
 #define egl_hpp_included_
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 #include "dbglog/dbglog.hpp"
 
@@ -17,12 +18,23 @@ struct Error : std::runtime_error {
     Error(const std::string &msg) : std::runtime_error(msg) {}
 };
 
+struct Device {
+    ::EGLDeviceEXT device;
+
+    typedef std::vector<Device> list;
+
+    Device(::EGLDeviceEXT device) : device(device) {}
+};
+
+Device::list queryDevices();
+
 class Display {
-private:
+public:
     typedef std::shared_ptr<std::remove_pointer< ::EGLDisplay>::type> Ptr;
 
-public:
     Display(::EGLNativeDisplayType nativeDisplay = EGL_DEFAULT_DISPLAY);
+
+    Display(const Device &device);
 
     Display(detail::PlaceHolder) {}
 
