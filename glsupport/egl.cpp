@@ -28,7 +28,7 @@ Prototype getProcAddress(const char *name)
     ::dlerror();
     auto proc(Prototype(::dlsym(RTLD_DEFAULT, name)));
     if (auto error = ::dlerror()) {
-        LOGTHROW(err2, std::runtime_error)
+        LOGTHROW(err2, MissingExtension)
             << "Unable to get address of EGL function "
             << name << ": " << error << ".";
     }
@@ -43,13 +43,13 @@ Prototype eglGetProcAddress(const char *name)
                        ("eglGetProcAddress", std::nothrow));
 
     if (!loader) {
-        LOGTHROW(err2, std::runtime_error)
+        LOGTHROW(err2, MissingExtension)
             << "EGL: unable to query extensions.";
     }
 
     auto proc(Prototype(loader(name)));
     if (!proc) {
-        LOGTHROW(err2, std::runtime_error)
+        LOGTHROW(err2, MissingExtension)
             << "EGL: unable to get <" << name << "> extension.";
     }
 
@@ -63,7 +63,7 @@ Prototype eglGetProcAddress(const char *name)
          ("eglGetPlatformDisplayEXT"));
 
     if (!eglGetPlatformDisplayEXT) {
-        LOGTHROW(err2, std::runtime_error)
+        LOGTHROW(err2, MissingExtension)
             << "EGL: eglGetPlatformDisplayEXT unavailable.";
     }
 
@@ -80,7 +80,7 @@ Device::list queryDevices()
          ("eglQueryDevicesEXT"));
 
     if (!eglQueryDevicesEXT) {
-        LOGTHROW(err2, std::runtime_error)
+        LOGTHROW(err2, MissingExtension)
             << "EGL: eglQueryDevicesEXT unavailable.";
     }
 

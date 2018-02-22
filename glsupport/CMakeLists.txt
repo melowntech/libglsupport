@@ -6,6 +6,7 @@ define_module(LIBRARY glsupport=${glsupport_VERSION}
   )
 
 set(glsupport_SOURCES
+  eglfwd.hpp
   egl.hpp egl.cpp
   shader.hpp shader.cpp
   fb.hpp fb.cpp

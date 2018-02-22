@@ -1,10 +1,14 @@
 #ifndef egl_hpp_included_
 #define egl_hpp_included_
 
+#include <new>
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
 #include "dbglog/dbglog.hpp"
+
+#include "./eglfwd.hpp"
 
 namespace glsupport { namespace egl {
 
@@ -18,14 +22,23 @@ struct Error : std::runtime_error {
     Error(const std::string &msg) : std::runtime_error(msg) {}
 };
 
+struct MissingExtension : Error {
+    MissingExtension(const std::string &msg) : Error(msg) {}
+};
+
 struct Device {
     ::EGLDeviceEXT device;
 
     typedef std::vector<Device> list;
 
+    Device() : device() {}
     Device(::EGLDeviceEXT device) : device(device) {}
+
+    operator bool() const { return device; }
 };
 
+/** Query for all available devices on the platform.
+ */
 Device::list queryDevices();
 
 class Display {
