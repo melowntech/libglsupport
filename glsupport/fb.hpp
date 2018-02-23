@@ -29,8 +29,7 @@
 
 #include <memory>
 
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include "utility/gl.hpp"
 
 #include "math/geometry_core.hpp"
 

@@ -24,13 +24,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef gles2_hpp_included_
-#define gles2_hpp_included_
+#ifndef shader_hpp_included_
+#define shader_hpp_included_
 
 #include <memory>
 
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include "utility/gl.hpp"
 
 #include "dbglog/dbglog.hpp"
 
@@ -151,4 +150,4 @@ inline void Program::link(VertexShader vs, FragmentShader fs)
 
 } // namespace glsupport
 
-#endif // gles2_hpp_included_
+#endif // shader_hpp_included_
