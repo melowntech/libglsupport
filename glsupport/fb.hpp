@@ -35,14 +35,28 @@
 
 namespace glsupport {
 
+enum PixelType {
+    rgb8, rgba8, rgb32f, rgba32f
+};
+
 class FrameBuffer {
 public:
-    FrameBuffer(const math::Size2 &size, bool alpha = false);
+    /** Preferred version.
+     */
+    FrameBuffer(const math::Size2 &size
+                , PixelType pixelType = PixelType::rgb8);
+
+    /** Compatibility interface.
+     */
+    FrameBuffer(const math::Size2 &size, bool alpha);
+
     ~FrameBuffer();
 
 private:
+    void init();
+
     const math::Size2 size_;
-    const bool alpha_;
+    PixelType pixelType_;
 
     ::GLuint fbId_;
     ::GLuint depthTextureId_;

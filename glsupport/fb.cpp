@@ -76,8 +76,19 @@ void checkGlFramebuffer()
 } // namespace
 
 FrameBuffer::FrameBuffer(const math::Size2 &size, bool alpha)
-    : size_(size), alpha_(alpha)
-    ,  fbId_(), depthTextureId_(), colorTextureId_()
+    : size_(size), pixelType_(alpha ? PixelType::rgba8 : PixelType::rgb8)
+    , fbId_(), depthTextureId_(), colorTextureId_()
+{
+    init();
+}
+FrameBuffer::FrameBuffer(const math::Size2 &size, PixelType pixelType)
+    : size_(size), pixelType_(pixelType)
+    , fbId_(), depthTextureId_(), colorTextureId_()
+{
+    init();
+}
+
+void FrameBuffer::init()
 {
     checkGl("pre-framebuffer check");
 
@@ -87,7 +98,7 @@ FrameBuffer::FrameBuffer(const math::Size2 &size, bool alpha)
     ::glBindTexture(GL_TEXTURE_2D, depthTextureId_);
 
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32,
-                   size.width, size.height,
+                   size_.width, size_.height,
                    0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -99,15 +110,31 @@ FrameBuffer::FrameBuffer(const math::Size2 &size, bool alpha)
     ::glGenTextures(1, &colorTextureId_);
     ::glBindTexture(GL_TEXTURE_2D, colorTextureId_);
 
-    if (alpha) {
-        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-                       size.width, size.height,
-                       0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    } else {
+    switch (pixelType_) {
+    case PixelType::rgb8:
         ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8,
-                       size.width, size.height,
+                       size_.width, size_.height,
                        0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        break;
+
+    case PixelType::rgba8:
+        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+                       size_.width, size_.height,
+                       0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+    case PixelType::rgb32f:
+        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
+                       size_.width, size_.height,
+                       0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        break;
+
+    case PixelType::rgba32f:
+        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,
+                       size_.width, size_.height,
+                       0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        break;
     }
+
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
