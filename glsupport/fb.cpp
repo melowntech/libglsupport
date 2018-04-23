@@ -27,10 +27,9 @@
 #include "dbglog/dbglog.hpp"
 
 #include "./fb.hpp"
+#include "./glerror.hpp"
 
 namespace glsupport {
-
-namespace {
 
 void checkGl(const char *name)
 {
@@ -56,6 +55,8 @@ void checkGl(const char *name)
         throw std::runtime_error("gl_unknown_error");
     }
 }
+
+namespace {
 
 void checkGlFramebuffer()
 {

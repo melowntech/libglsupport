@@ -30,6 +30,16 @@ namespace glsupport {
 
 namespace detail {
 
+const char* typeName(::GLenum type)
+{
+    switch (type) {
+    case GL_VERTEX_SHADER: return "vertex";
+    case GL_FRAGMENT_SHADER: return "fragment";
+    default: return "unknown";
+    }
+    return "unknown";
+}
+
 std::shared_ptr< ::GLuint> loadShader(::GLenum type, const void *data
                                       , std::size_t size)
 {
@@ -42,7 +52,7 @@ std::shared_ptr< ::GLuint> loadShader(::GLenum type, const void *data
 
     if (!*shader) {
         LOGTHROW(err2, Error)
-            << "Cannot create GL shader.";
+            << "Cannot create GL " << typeName(type) << " shader.";
     }
 
     const ::GLchar *d(static_cast<const GLchar*>(data));
@@ -62,11 +72,12 @@ std::shared_ptr< ::GLuint> loadShader(::GLenum type, const void *data
 
             ::glGetShaderInfoLog(*shader, il, nullptr, &log[0]);
             LOGTHROW(err2, Error)
-                << "Cannot compile shader: " << log.data();
+                << "Cannot compile " << typeName(type) << " shader: "
+                << log.data();
         }
 
         LOGTHROW(err2, Error)
-            << "Cannot compile shader.";
+            << "Cannot compile " << typeName(type) << " shader.";
     }
 
     return shader;
