@@ -122,6 +122,7 @@ void FrameBuffer::init()
         ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
                        size_.width, size_.height,
                        0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        break;
 
     case PixelType::rgb32f:
         ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
