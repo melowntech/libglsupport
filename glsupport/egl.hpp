@@ -29,12 +29,17 @@
 
 #include <new>
 
+// MESA_EGL_NO_X11_HEADERS is deprecated
+#if defined(MESA_EGL_NO_X11_HEADERS) && !defined(EGL_NO_X11)
+#define EGL_NO_X11
+#endif
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
 #include "dbglog/dbglog.hpp"
 
-#include "./eglfwd.hpp"
+#include "eglfwd.hpp"
 
 namespace glsupport { namespace egl {
 
