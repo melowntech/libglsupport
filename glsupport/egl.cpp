@@ -28,7 +28,7 @@
 
 #include <new>
 
-#include "./egl.hpp"
+#include "egl.hpp"
 
 namespace glsupport { namespace egl {
 
